@@ -73,3 +73,7 @@ If you have the MQTT integration set-up in Home Assistant, Home Assistant should
 You should see one device per inverter with the following sensors:
 
 ![Device](images/ha-devices.png)
+
+## Acknowledgements
+
+This code was inspired by https://github.com/vmath54/apsystems in particular the modbus registry values supported by APS devices.
