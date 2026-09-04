@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace ecu2mqtt;
+﻿namespace ecu2mqtt;
 
 internal record class InverterData
 {
