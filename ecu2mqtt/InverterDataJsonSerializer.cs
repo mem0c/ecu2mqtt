@@ -15,7 +15,7 @@ internal class InverterDataJsonSerializer
         new("current_ac",     "AC Current",     "current",        "measurement",      "A",   "mdi:current-ac"),
         new("frequency",      "Frequency",      "frequency",      "measurement",      "Hz",  "mdi:sine-wave"),
         new("power_apparent", "Apparent Power", "apparent_power", "measurement",      "VA",  "mdi:lightning-bolt-outline"),
-        new("power_reactive", "Reactive Power", "reactive_power", "measurement",      "VAR", "mdi:lightning-bolt-outline"),
+        new("power_reactive", "Reactive Power", "reactive_power", "measurement",      "var", "mdi:lightning-bolt-outline"),
         new("power_factor",   "Power Factor",   "power_factor",   "measurement",      null,  "mdi:angle-acute"),
         new("energy_total",   "Total Energy",   "energy",         "total_increasing", "kWh", "mdi:solar-power"),
         new("temperature",    "Temperature",    "temperature",    "measurement",      "°C",  "mdi:thermometer"),
@@ -28,29 +28,26 @@ internal class InverterDataJsonSerializer
         new("dc2_current",    "DC2 Current",    "current",        "measurement",      "A",   "mdi:current-dc"),
     ];
 
-    public const string TopicPrefix = "ecu2mqtt";
-    public const string BridgeAvailabilityTopic = $"{TopicPrefix}/bridge/availability";
-
-    public static string GetDeviceAvailabilityTopic(string serialNumber) => $"{TopicPrefix}/{serialNumber}/availability";
+    public static string GetDeviceAvailabilityTopic(string serialNumber) => $"{MqttConstants.TopicPrefix}/{serialNumber}/availability";
 
     public static IEnumerable<(string Topic, string Payload)> GetHomeAssistantDiscoveryTopicsAndPayloads(InverterInfo inverterInfo)
     {
         var deviceId = $"inverter_{inverterInfo.SerialNumber}";
-        var stateTopic = $"{TopicPrefix}/{inverterInfo.SerialNumber}/state";
+        var stateTopic = $"{MqttConstants.TopicPrefix}/{inverterInfo.SerialNumber}/state";
         var deviceAvailabilityTopic = GetDeviceAvailabilityTopic(inverterInfo.SerialNumber);
 
         foreach (var sensor in Sensors)
         {
             var config = new SensorConfig(
                 Name: sensor.Name,
-                ObjectId: $"inverter_{inverterInfo.SerialNumber}_{sensor.Suffix}",
+                DefaultEntityId: $"inverter_{inverterInfo.SerialNumber}_{sensor.Suffix}",
                 UniqueId: $"{deviceId}_{sensor.Suffix}",
                 StateTopic: stateTopic,
                 ValueTemplate: $"{{{{ value_json.{sensor.Suffix} }}}}",
                 Icon: sensor.Icon,
                 Availability:
                 [
-                    new(BridgeAvailabilityTopic, "{{ value_json.state }}"),
+                    new(MqttConstants.BridgeAvailabilityTopic, "{{ value_json.state }}"),
                     new(deviceAvailabilityTopic, "{{ value_json.state }}"),
                 ],
                 AvailabilityMode: "all",
@@ -73,7 +70,7 @@ internal class InverterDataJsonSerializer
 
     public static (string Topic, string Payload) GetStateTopicAndPayload(InverterData inverterData, string serialNumber)
     {
-        var topic = $"{TopicPrefix}/{serialNumber}/state";
+        var topic = $"{MqttConstants.TopicPrefix}/{serialNumber}/state";
         var payload = new JsonObject
         {
             ["power_ac"] = inverterData.PowerAC,
@@ -99,7 +96,7 @@ internal class InverterDataJsonSerializer
 
 internal partial record AvailabilityEntry(string Topic, string ValueTemplate);
 internal partial record DeviceInfo(string[] Identifiers, string Name, string Manufacturer, string Model, string SwVersion);
-internal partial record SensorConfig(string Name, string ObjectId, string UniqueId, string StateTopic, string ValueTemplate, string Icon, AvailabilityEntry[] Availability, string AvailabilityMode, string? DeviceClass, string? StateClass, string? UnitOfMeasurement, DeviceInfo Device);
+internal partial record SensorConfig(string Name, string DefaultEntityId, string UniqueId, string StateTopic, string ValueTemplate, string Icon, AvailabilityEntry[] Availability, string AvailabilityMode, string? DeviceClass, string? StateClass, string? UnitOfMeasurement, DeviceInfo Device);
 
 [JsonSerializable(typeof(SensorConfig))]
 [JsonSerializable(typeof(AvailabilityEntry))]
